@@ -250,7 +250,7 @@ function global:Get-VMHostDatastores {
     .Synopsis
     Configures host networking
     .Description
-    Configures host networking for VMHosts provided
+    Configures host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
     .Parameter VMHosts
     The VMHosts you want to configure networking for. Can be a single host or multiple hosts provided by the pipeline
     .Example
