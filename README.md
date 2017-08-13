@@ -22,7 +22,7 @@ PowerCLI-Environment-Custom
 ###### Configures host networking for VMHosts provided
 
 ##### Export-VMHostNetworking
-###### Exports host networking of VMHosts provided
+###### Exports host networking for VMHosts provided
 
 ## Installation - Pre 6.5
 To load custom vSphere PowerCLI settings automatically, you can create a script configuration file named Initialize-PowerCLIEnvironment_Custom.ps1 in the Scripts folder. The application recognizes and loads the custom file after loading the default script configuration file.
