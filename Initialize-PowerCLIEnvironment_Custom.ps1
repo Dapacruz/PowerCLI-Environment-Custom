@@ -213,7 +213,7 @@ function global:Get-VMHostUptime {
     .Description
     Retrieves the datastore usage of VMHosts provided
     .Parameter VMHosts
-    The VMHosts you want to get the SSH service status of. Can be a single host or multiple hosts provided by the pipeline
+    The VMHosts you want to get datastore usage of. Can be a single host or multiple hosts provided by the pipeline
     .Example
     Get-VMHostDatastores
     Shows the usage statistics of all unique datastores in vCenter
@@ -242,5 +242,193 @@ function global:Get-VMHostDatastores {
     else {
       Get-Datastore | select-object -unique Name, @{N='Capacity (GB)'; E={{{0:N2}} -f $_.CapacityGB}}, @{N='UsedSpace (GB)'; E={{{0:N2}} -f ($_.CapacityGB - $_.FreeSpaceGB)}}, @{N='FreeSpace (GB)'; E={{{0:N2}} -f $_.FreeSpaceGB}}
     }
+  }
+}
+
+
+<#
+    .Synopsis
+    Configures host networking
+    .Description
+    Configures host networking for VMHosts provided
+    .Parameter VMHosts
+    The VMHosts you want to configure networking for. Can be a single host or multiple hosts provided by the pipeline
+    .Example
+    Configure-VMHostNetworking vmhost1
+    Configures networking for vmhost1
+    .Link
+    http://www.dsatechnologies.com
+#>
+# TODO Needs work; use Export-VMHostNetworking as a template
+function global:Configure-VMHostNetworking {
+  [CmdletBinding()]
+  Param (
+    [Parameter(ValueFromPipeline=$True, ValueFromPipelineByPropertyName=$True, Mandatory=$False, Position=0)][Alias('Name')]
+    [string[]]$VMHosts,
+    [string]$VirtualSwitchesPath = 'Virtual_Switches.csv',
+    [string]$VirtualPortGroupsPath = 'Virtual_Port_Groups.csv',
+    [string]$VMHostNetworkAdaptersPath = 'VMHost_Network_Adapters.csv'
+  )
+  Begin {
+    $virtual_switches = Import-Csv $VirtualSwitchesPath
+    $virtual_port_groups = Import-Csv $VirtualPortGroupsPath
+    $vmhost_network_adapters = Import-Csv $VMHostNetworkAdaptersPath
+  }
+  Process {
+    if ($VMHosts) {
+        $VMHosts = Get-VMHost -Name $VMHosts
+    }
+
+    foreach ($h in $VMHosts) {
+      # Create virtual switches
+      # Skip vSwitch0 since it exists by default
+      foreach ($s in $virtual_switches) {
+          if ($s.VMHost -ne $h.Name) {
+              continue
+          }
+          if ($s.Name -eq 'vSwitch0') {
+              continue
+          }
+          $params = @{
+              'VMHost'=$h
+              'Name'=$s.Name
+              'Nic'=$s.Nic
+              'Mtu'=$s.Mtu
+          }
+          New-VirtualSwitch @params -WhatIf
+      }
+
+      # Remove default VM Network virtual port group since it exists by default
+      Remove-VirtualPortGroup -VirtualPortGroup (Get-VirtualPortGroup -VMHost $h -Name 'VM Network') -WhatIf
+
+      # Create virtual port groups
+      foreach ($vpg in $virtual_port_groups) {
+          if ($vpg.VMHost -ne $h.Name) {
+              continue
+          }
+          $params = @{
+              'Name'=$vpg.Name
+              'VirtualSwitch'=$vpg.VirtualSwitch
+              'VLanId'=$vpg.VLanId
+          }
+          New-VirtualPortGroup @params -WhatIf
+      }
+
+      # Create host network adapters in their original order to maintain device name
+      foreach ($n in $vmhost_network_adapters | Sort-Object -Property DeviceName ) {
+        if ($n.VMHost -ne $h.Name) {
+            continue
+        }
+        # Skip Management Network port group since it exists by default
+        if ($n.PortGroup -eq 'Management Network') {
+          continue
+        }
+        
+        # Convert empty properties to FALSE
+        foreach ($p in $n.PSObject.Properties) {
+            if ($p.Value -eq '') {
+                $p.Value = "FALSE"
+            }
+        }
+
+        $params = @{
+            'VMHost'= $h
+            'PortGroup'=$n.PortGroup
+            'IP'=$n.IP
+            'SubnetMask'=$n.SubnetMask
+            'Mtu'=$n.Mtu
+            'VMotionEnabled'=$n.VMotionEnabled
+            'FaultToleranceLoggingEnabled'=$n.FaultToleranceLoggingEnabled
+            'ManagementTrafficEnabled'=$n.ManagementTrafficEnabled
+            'VsanTrafficEnabled'=$n.VsanTrafficEnabled
+        }
+        New-VMHostNetworkAdapter @params -WhatIf
+      }
+    }
+  }
+}
+
+
+<#
+    .Synopsis
+    Export host networking
+    .Description
+    Exports host networking of VMHosts provided
+    .Parameter VMHosts
+    The VMHosts you want to export networking for. Can be a single host or multiple hosts provided by the pipeline
+    .Example
+    Export-VMHostNetworking vmhost1
+    Exports networking for vmhost1
+    .Link
+    http://www.dsatechnologies.com
+#>
+function global:Export-VMHostNetworking {
+  [CmdletBinding()]
+  Param (
+    [Parameter(ValueFromPipeline=$True, ValueFromPipelineByPropertyName=$True, Mandatory=$True, Position=0)][Alias('Name')]
+    [string[]]$VMHosts,
+    [string]$VirtualSwitchesPath = 'Virtual_Switches.csv',
+    [string]$VirtualPortGroupsPath = 'Virtual_Port_Groups.csv',
+    [string]$VMHostNetworkAdaptersPath = 'VMHost_Network_Adapters.csv'
+  )
+  Begin {
+    $virtual_switches = @()
+    $virtual_port_groups = @()
+    $vmhost_network_adapters = @()
+  }
+  Process {
+    if ($VMHosts) {
+        $VMHosts = Get-VMHost -Name $VMHosts
+    }
+
+    foreach ($VMHost in $VMHosts) {
+        # Export virtual switches
+        foreach ($s in Get-VirtualSwitch -VMHost $VMHost) {
+            $obj = New-Object PSObject
+            $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
+            $obj | Add-Member -MemberType NoteProperty -Name 'Name' -Value $s.Name
+            # Convert array to a comma separated string
+            $obj | Add-Member -MemberType NoteProperty -Name 'Nic' -Value "$($s.Nic)".Replace(' ', ',')
+            $obj | Add-Member -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
+
+            $virtual_switches += $obj
+        }
+
+        # Export virtual port groups
+        foreach ($s in Get-VirtualPortGroup -VMHost $VMHost) {
+            $obj = New-Object PSObject
+            $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
+            $obj | Add-Member -MemberType NoteProperty -Name 'Name' -Value $s.Name
+            $obj | Add-Member -MemberType NoteProperty -Name 'VirtualSwitch' -Value $s.VirtualSwitch
+            $obj | Add-Member -MemberType NoteProperty -Name 'VLanId' -Value $s.VLanId
+
+            $virtual_port_groups += $obj
+        }
+
+        # Export host network adapters
+        # TODO Include vmnic active/standby/unused settings
+        foreach ($s in Get-VMHostNetworkAdapter -VMHost $VMHost -VMKernel) {
+            $obj = New-Object PSObject
+            $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
+            $obj | Add-Member -MemberType NoteProperty -Name 'DeviceName' -Value $s.DeviceName
+            $obj | Add-Member -MemberType NoteProperty -Name 'PortGroup' -Value $s.PortGroupName
+            $obj | Add-Member -MemberType NoteProperty -Name 'IP' -Value $s.IP
+            $obj | Add-Member -MemberType NoteProperty -Name 'SubnetMask' -Value $s.SubnetMask
+            $obj | Add-Member -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
+            $obj | Add-Member -MemberType NoteProperty -Name 'VMotionEnabled' -Value $s.VMotionEnabled
+            $obj | Add-Member -MemberType NoteProperty -Name 'FaultToleranceLoggingEnabled' -Value $s.FaultToleranceLoggingEnabled
+            $obj | Add-Member -MemberType NoteProperty -Name 'ManagementTrafficEnabled' -Value $s.ManagementTrafficEnabled
+            $obj | Add-Member -MemberType NoteProperty -Name 'VsanTrafficEnabled' -Value $s.VsanTrafficEnabled
+
+            $vmhost_network_adapters += $obj
+        }
+    }
+  }
+  End {         
+    $virtual_switches | Export-Csv -Path $VirtualSwitchesPath -NoTypeInformation
+    $virtual_port_groups | Export-Csv -Path $VirtualPortGroupsPath -NoTypeInformation
+    $vmhost_network_adapters | Export-Csv -Path $VMHostNetworkAdaptersPath -NoTypeInformation
+    
+    ii $VirtualSwitchesPath, $VirtualPortGroupsPath, $VMHostNetworkAdaptersPath
   }
 }
