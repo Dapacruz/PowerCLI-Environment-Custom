@@ -19,7 +19,7 @@ PowerCLI-Environment-Custom
 ###### Retrieves the datastore usage of VMHosts provided
 
 ##### Configure-VMHostNetworking (Work in Progress)
-###### Configures host networking for VMHosts provided
+###### Configures host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
 
 ##### Export-VMHostNetworking
 ###### Exports host networking for VMHosts provided
