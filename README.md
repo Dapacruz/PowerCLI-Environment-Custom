@@ -3,7 +3,7 @@ PowerCLI-Environment-Custom
 
 Provides useful functions missing from the default PowerCLI installation
 
-Get-VMHostSSHServiceStatus
+Get-VMHostSSHServiceStatus\n
 Retrieves the status of the SSH service of VMHosts provided, or VMHosts in the cluster provided
 
 ### Start-VMHostSSHService
