@@ -6,30 +6,23 @@ PowerCLI-Environment-Custom
 ##### Get-VMHostSSHServiceStatus
 ##### Retrieves the status of the SSH service of VMHosts provided, or VMHosts in the cluster provided
 
-
 ##### Start-VMHostSSHService
 ##### Starts the SSH service of VMHosts provided, or VMHosts in the cluster provided
-
 
 ##### Stop-VMHostSSHServic
 ##### Stops the SSH service of VMHosts provided, or VMHosts in the cluster provided
 
-
 ##### Get-VMHostUptime
 ##### Calculates the uptime of VMHosts provided, or VMHosts in the cluster provided
-
 
 ##### Get-VMHostDatastores
 ##### Retrieves the datastore usage of VMHosts provided
 
-
 ##### Configure-VMHostNetworking (Work in Progress)
 ##### Configures host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
 
-
 ##### Export-VMHostNetworking
 ##### Exports host networking for VMHosts provided
-
 
 ## Installation - PowerCLI Pre 6.5
 To load custom vSphere PowerCLI settings automatically, you can create a script configuration file named Initialize-PowerCLIEnvironment_Custom.ps1 in the Scripts folder. The application recognizes and loads the custom file after loading the default script configuration file.
