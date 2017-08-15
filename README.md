@@ -24,7 +24,7 @@ Creates a host networking CSV import template to be used with Import-VMHostNetwo
 Exports host networking for VMHosts provided
 
 **Import-VMHostNetworkingFromCsv**  
-Configures host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
+Imports host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
 
 **Installation - PowerCLI Pre 6.5**
 -----------------------------------
