@@ -50,7 +50,7 @@ $CustomInitScript = Join-Path $currentDir $CustomInitScriptName
         Get-VMHost -location folder1 | Get-VMHostSSHServiceStatus
         Shows the SSH service status of VMHosts in folder1
         .Link
-        https://github.com/Dapacr/PowerCLI-Environment-Custom
+        https://github.com/Dapacr
 #>
 function global:Get-VMHostSSHServiceStatus {
     [CmdletBinding()] 
@@ -63,16 +63,16 @@ function global:Get-VMHostSSHServiceStatus {
     Process {
         If ($VMHosts) {
             foreach ($VMHost in $VMHosts) {
-                get-vmhostservice $VMHost | where { $_.key -eq "tsm-ssh" } | select VMHost, Label, Running
+                get-vmhostservice $VMHost | Where-Object { $_.key -eq "tsm-ssh" } | Select-Object VMHost, Label, Running
             }
         }
         elseif ($Cluster) {
             foreach ($VMHost in (Get-VMHost -Location $Cluster)) {
-                get-vmhostservice $VMHost | where { $_.key -eq "tsm-ssh" } | select VMHost, Label, Running
+                get-vmhostservice $VMHost | Where-Object { $_.key -eq "tsm-ssh" } | Select-Object VMHost, Label, Running
             }
         }
         else {
-            get-vmhostservice '*' | where { $_.key -eq "tsm-ssh" } | select VMHost, Label, Running
+            get-vmhostservice '*' | Where-Object { $_.key -eq "tsm-ssh" } | Select-Object VMHost, Label, Running
         }
     }
 }
@@ -98,7 +98,7 @@ function global:Get-VMHostSSHServiceStatus {
         Get-VMHost -location folder1 | Start-VMHostSSHService
         Starts the SSH service on VMHosts in folder1
         .Link
-        https://github.com/Dapacr/PowerCLI-Environment-Custom
+        https://github.com/Dapacr
 #>
 function global:Start-VMHostSSHService {
     [CmdletBinding(SupportsShouldProcess=$True)] 
@@ -111,20 +111,20 @@ function global:Start-VMHostSSHService {
     Process {
         If ($VMHosts) {
             foreach ($VMHost in $VMHosts) {
-                start-vmhostservice -hostservice (get-vmhostservice $VMHost | where { $_.key -eq "tsm-ssh"}) > $null
+                start-vmhostservice -hostservice (get-vmhostservice $VMHost | Where-Object { $_.key -eq "tsm-ssh"}) > $null
             }
             
             Get-VMHostSSHServiceStatus -VMHosts $VMHosts
         }
         elseif ($Cluster) {
             foreach ($VMHost in (Get-VMHost -Location $Cluster)) {
-                start-vmhostservice -hostservice (get-vmhostservice $VMHost | where { $_.key -eq "tsm-ssh"}) > $null
+                start-vmhostservice -hostservice (get-vmhostservice $VMHost | Where-Object { $_.key -eq "tsm-ssh"}) > $null
             }
             
             Get-VMHostSSHServiceStatus -Cluster $Cluster
         }
         else {
-            start-vmhostservice -hostservice (get-vmhostservice '*' | where { $_.key -eq "tsm-ssh"}) > $null
+            start-vmhostservice -hostservice (get-vmhostservice '*' | Where-Object { $_.key -eq "tsm-ssh"}) > $null
             
             Get-VMHostSSHServiceStatus
         }
@@ -152,7 +152,7 @@ function global:Start-VMHostSSHService {
         Get-VMHost -location folder1 | Stop-VMHostSSHService
         Stops the SSH service on VMHosts in folder1
         .Link
-        https://github.com/Dapacr/PowerCLI-Environment-Custom
+        https://github.com/Dapacr
 #>
 function global:Stop-VMHostSSHService {
     [CmdletBinding(SupportsShouldProcess=$True)] 
@@ -165,20 +165,20 @@ function global:Stop-VMHostSSHService {
     Process {
         If ($VMHosts) {
             foreach ($VMHost in $VMHosts) {
-                stop-vmhostservice -hostservice (get-vmhostservice $VMHost | where { $_.key -eq "tsm-ssh"}) > $null
+                stop-vmhostservice -hostservice (get-vmhostservice $VMHost | Where-Object { $_.key -eq "tsm-ssh"}) > $null
             }
             
             Get-VMHostSSHServiceStatus -VMHosts $VMHosts
         }
         elseif ($Cluster) {
             foreach ($VMHost in (Get-VMHost -Location $Cluster)) {
-                stop-vmhostservice -hostservice (get-vmhostservice $VMHost | where { $_.key -eq "tsm-ssh"}) > $null
+                stop-vmhostservice -hostservice (get-vmhostservice $VMHost | Where-Object { $_.key -eq "tsm-ssh"}) > $null
             }
             
             Get-VMHostSSHServiceStatus -Cluster $Cluster
         }
         else {
-            stop-vmhostservice -hostservice (get-vmhostservice '*' | where { $_.key -eq "tsm-ssh"}) > $null
+            stop-vmhostservice -hostservice (get-vmhostservice '*' | Where-Object { $_.key -eq "tsm-ssh"}) > $null
             
             Get-VMHostSSHServiceStatus
         }
@@ -249,7 +249,7 @@ function global:Get-VMHostUptime {
         Get-VMHostDatastores (get-cluster 'cluster1' | get-vmhost)
         Shows the usage statistics of all datastores of all hosts in vCenter cluster 'cluster1'
         .Link
-        https://github.com/Dapacr/PowerCLI-Environment-Custom
+        https://github.com/Dapacr
 #>
 function global:Get-VMHostDatastores {
     [CmdletBinding()] 
@@ -270,6 +270,101 @@ function global:Get-VMHostDatastores {
 
 <#
         .Synopsis
+        Create a host networking CSV import template
+        .Description
+        Creates a host networking CSV import template to be used with Import-VMHostNetworkingFromCsv
+        .Parameter NoSampleData
+        Creates a host networking CSV import template without sample data
+        .Example
+        New-VMHostNetworkingCsvTemplate
+        Creates a host networking CSV import template with sample data
+        .Link
+        https://github.com/Dapacr
+#>
+function global:New-VMHostNetworkingCsvTemplate {
+    [CmdletBinding()]
+    Param (
+        [switch]$NoSampleData,
+        [string]$VirtualSwitchesCsvPath = 'Virtual_Switches.csv',
+        [string]$VirtualPortGroupsCsvPath = 'Virtual_Port_Groups.csv',
+        [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv'
+    )
+    Begin {
+        if (Test-Path -Path $VirtualSwitchesCsvPath) {
+            Throw "$VirtualSwitchesCsvPath already exists!"
+        }
+        if (Test-Path -Path $VirtualPortGroupsCsvPath) {
+            Throw "$VirtualPortGroupsCsvPath already exists!"
+        }
+        if (Test-Path -Path $VMHostNetworkAdaptersCsvPath) {
+            Throw "$VMHostNetworkAdaptersCsvPath already exists!"
+        }
+    }
+    Process { 
+        # Generate virtual switches template
+        if ($NoSampleData) {
+            $virtual_switches = @(
+                'VMHost,Name,Nic,Mtu'
+                ',,,'
+            )
+        } else {
+            $virtual_switches = @(
+                'VMHost,Name,Nic,Mtu'
+                'esx1,vSwitch0,"vmnic0,vmnic4",1500'
+                'esx1,vSwitch1,"vmnic1,vmnic5",9000'
+            )
+        }
+        
+        ConvertFrom-Csv -InputObject $virtual_switches -Delimiter ',' | Export-Csv $VirtualSwitchesCsvPath -NoTypeInformation
+        
+        # Generate virtual port groups template
+        if ($NoSampleData) {
+            $virtual_port_groups = @(
+                'VMHost,Name,VirtualSwitch,VLanId,ActiveNic,StandbyNic,UnusedNic'
+                ',,,,,,'
+            )
+        } else {
+            $virtual_port_groups = @(
+                'VMHost,Name,VirtualSwitch,VLanId,ActiveNic,StandbyNic,UnusedNic'
+                'esx1,vMotion1,vSwitch0,115,vmnic0,,vmnic4'
+                'esx1,vMotion2,vSwitch0,115,vmnic4,,vmnic0'
+                'esx1,Management Network,vSwitch0,0,"vmnic4,vmnic0",,'
+                'esx1,DMZ,vSwitch0,200,"vmnic4,vmnic0",,'
+                'esx1,Production,vSwitch0,0,"vmnic4,vmnic0",,'
+                'esx1,iSCSI2,vSwitch1,0,vmnic5,,vmnic1'
+                'esx1,iSCSI1,vSwitch1,0,vmnic1,,vmnic5'
+            )
+        }
+        
+        ConvertFrom-Csv -InputObject $virtual_port_groups -Delimiter ',' | Export-Csv $VirtualPortGroupsCsvPath -NoTypeInformation
+        
+        # Generate vmhost network adapaters template
+        if ($NoSampleData) {
+            $vmhost_network_adapaters = @(
+                'VMHost,DeviceName,PortGroup,IP,SubnetMask,Mtu,VMotionEnabled,FaultToleranceLoggingEnabled,ManagementTrafficEnabled,VsanTrafficEnabled'
+                ',,,,,,,,,'
+            )
+        } else {
+            $vmhost_network_adapaters = @(
+                'VMHost,DeviceName,PortGroup,IP,SubnetMask,Mtu,VMotionEnabled,FaultToleranceLoggingEnabled,ManagementTrafficEnabled,VsanTrafficEnabled'
+                'esx1,vmk0,Management Network,1.1.1.1,255.255.255.0,1500,FALSE,FALSE,TRUE,FALSE'
+                'esx1,vmk1,vMotion1,2.1.1.1,255.255.255.0,1500,TRUE,FALSE,FALSE,FALSE'
+                'esx1,vmk2,vMotion2,2.1.1.2,255.255.255.0,1500,TRUE,FALSE,FALSE,FALSE'
+                'esx1,vmk3,iSCSI1,3.1.1.1,255.255.255.0,9000,FALSE,FALSE,FALSE,FALSE'
+                'esx1,vmk4,iSCSI2,3.1.1.2,255.255.255.0,9000,FALSE,FALSE,FALSE,FALSE'
+            )
+        }
+        
+        ConvertFrom-Csv -InputObject $vmhost_network_adapaters -Delimiter ',' | Export-Csv $VMHostNetworkAdaptersCsvPath -NoTypeInformation
+        
+        Invoke-Item -Path $VirtualSwitchesCsvPath, $VirtualPortGroupsCsvPath, $VMHostNetworkAdaptersCsvPath
+    }
+    End {}
+}
+
+
+<#
+        .Synopsis
         Export host networking
         .Description
         Exports host networking of VMHosts provided
@@ -279,9 +374,11 @@ function global:Get-VMHostDatastores {
         Export-VMHostNetworkingToCsv vmhost*
         Exports networking for vmhosts with names that begin with "vmhost"
         .Link
-        https://github.com/Dapacr/PowerCLI-Environment-Custom
+        https://github.com/Dapacr
 #>
 function global:Export-VMHostNetworkingToCsv {
+    # TODO Export software iSCSI adapter configuration
+    
     [CmdletBinding()]
     Param (
         [Parameter(ValueFromPipeline=$True, ValueFromPipelineByPropertyName=$True, Mandatory=$True, Position=0)][Alias('Name')]
@@ -291,6 +388,16 @@ function global:Export-VMHostNetworkingToCsv {
         [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv'
     )
     Begin {
+        if (Test-Path -Path $VirtualSwitchesCsvPath) {
+            Throw "$VirtualSwitchesCsvPath already exists!"
+        }
+        if (Test-Path -Path $VirtualPortGroupsCsvPath) {
+            Throw "$VirtualPortGroupsCsvPath already exists!"
+        }
+        if (Test-Path -Path $VMHostNetworkAdaptersCsvPath) {
+            Throw "$VMHostNetworkAdaptersCsvPath already exists!"
+        }
+        
         $virtual_switches = @()
         $virtual_port_groups = @()
         $vmhost_network_adapters = @()
@@ -314,17 +421,21 @@ function global:Export-VMHostNetworkingToCsv {
 
             # Export virtual port groups
             foreach ($s in Get-VirtualPortGroup -VMHost $VMHost) {
+                $nic_teaming_policy = Get-NicTeamingPolicy -VirtualPortGroup $s
                 $obj = New-Object PSObject
                 $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
                 $obj | Add-Member -MemberType NoteProperty -Name 'Name' -Value $s.Name
                 $obj | Add-Member -MemberType NoteProperty -Name 'VirtualSwitch' -Value $s.VirtualSwitch
                 $obj | Add-Member -MemberType NoteProperty -Name 'VLanId' -Value $s.VLanId
-
+                $obj | Add-Member -MemberType NoteProperty -Name 'ActiveNic' -Value "$($nic_teaming_policy.ActiveNic)".Replace(' ', ',')
+                $obj | Add-Member -MemberType NoteProperty -Name 'StandbyNic' -Value "$($nic_teaming_policy.StandbyNic)".Replace(' ', ',')
+                $obj | Add-Member -MemberType NoteProperty -Name 'UnusedNic' -Value "$($nic_teaming_policy.UnusedNic)".Replace(' ', ',')
+                
                 $virtual_port_groups += $obj
             }
 
             # Export host network adapters
-            # TODO Include vmnic active/standby/unused settings
+            # TODO Include vmnic teaming (active/standby/unused) settings
             foreach ($s in Get-VMHostNetworkAdapter -VMHost $VMHost -VMKernel) {
                 $obj = New-Object PSObject
                 $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
@@ -351,70 +462,139 @@ function global:Export-VMHostNetworkingToCsv {
     }
 }
 
+
 <#
         .Synopsis
-        Configures host networking
+        Imports host networking
         .Description
-        Configures host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
+        Imports host networking for VMHosts provided utilizing the output from Export-VMHostNetworkingToCsv
         .Parameter VMHosts
-        The VMHosts you want to configure networking for. Can be a single host or multiple hosts provided by the pipeline
+        The VMHosts you want to import networking for. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Example
-        Configure-VMHostNetworking vmhost1
-        Configures networking for vmhost1
+        Import-VMHostNetworkingFromCsv vmhost*
+        Imports networking for all vmhosts with names that begin with "vmhost"
         .Link
-        https://github.com/Dapacr/PowerCLI-Environment-Custom
+        https://github.com/Dapacr
 #>
-function global:Configure-VMHostNetworking {
-    # Still a work in progress
+function global:Import-VMHostNetworkingFromCsv {
+    # TODO Configure software iSCSI adapter
+    
     [CmdletBinding()]
     Param (
-        [Parameter(ValueFromPipeline=$True, ValueFromPipelineByPropertyName=$True, Mandatory=$True, Position=0)][Alias('Name')]
+        [Parameter(ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, Mandatory=$true, Position=0)][Alias('Name')]
         [string[]]$VMHosts,
         [string]$VirtualSwitchesCsvPath = 'Virtual_Switches.csv',
         [string]$VirtualPortGroupsCsvPath = 'Virtual_Port_Groups.csv',
         [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv'
     )
     Begin {
-        $virtual_switches = Import-Csv $VirtualSwitchesCsvPath
-        $virtual_port_groups = Import-Csv $VirtualPortGroupsCsvPath
-        $vmhost_network_adapters = Import-Csv $VMHostNetworkAdaptersCsvPath
+        if (Test-Path -Path $VirtualSwitchesCsvPath) {
+            $virtual_switches = Import-Csv $VirtualSwitchesCsvPath
+        } else {
+            Throw "$VirtualSwitchesCsvPath not found!"
+        }
+        if (Test-Path -Path $VirtualPortGroupsCsvPath) {
+            $virtual_port_groups = Import-Csv $VirtualPortGroupsCsvPath
+        } else {
+            Throw "$VirtualPortGroupsCsvPath not found!"
+        }
+        if (Test-Path -Path $VMHostNetworkAdaptersCsvPath) {
+            $vmhost_network_adapters = Import-Csv $VMHostNetworkAdaptersCsvPath
+        } else {
+            Throw "$VMHostNetworkAdaptersCsvPath not found!"
+        }
     }
     Process {
         # Expand to full hostname in case wildcards are used
         $VMHosts = Get-VMHost -Name $VMHosts
 
         foreach ($VMHost in $VMHosts) {
-            # Create virtual switches. Skip vSwitch0 since it exists by default
             foreach ($s in $virtual_switches) {
+                # Skip virtual switches not associated with the current vmhost
                 if ($s.VMHost -ne $VMHost) {
                     continue
                 }
+                
+                # Create virtual switches. Skip vSwitch0 since it exists by default
+                $s.Nic = $s.Nic.Split(',').Trim()
                 if ($s.Name -eq 'vSwitch0') {
+                    '{0} already exists, skipping.' -f $s.Name
+                    
+                    # Add additional vmnics
+                    foreach ($nic in $s.Nic) {
+                        # Skip vmnic0 since it is linked by default
+                        if ($nic -match 'vmnic0') {
+                            continue
+                        }
+                        Add-VirtualSwitchPhysicalNetworkAdapter -VMHostPhysicalNic (Get-VMHostNetworkAdapter -VMHost $VMHost -Physical -Name $nic) -VirtualSwitch $s.Name -Confirm:$false
+                    }
+                    
                     continue
                 }
+                
                 $params = @{
                     'VMHost'=$VMHost
                     'Name'=$s.Name
                     'Nic'=$s.Nic
                     'Mtu'=$s.Mtu
                 }
-                New-VirtualSwitch @params -WhatIf
+                $virtual_switch_exists = Get-VirtualSwitch -VMHost $VMHost -Name $s.Name -ErrorAction SilentlyContinue
+                if (-not $virtual_switch_exists) {
+                    New-VirtualSwitch @params
+                } else {
+                    '{0} already exists, skipping.' -f $s.Name
+                }
             }
 
-            # Remove default VM Network virtual port group since it exists by default
-            Remove-VirtualPortGroup -VirtualPortGroup (Get-VirtualPortGroup -VMHost $VMHost -Name 'VM Network') -WhatIf
+            # Remove default 'VM Network' virtual port group since it exists by default
+            $vm_network_exists = Get-VirtualPortGroup -VMHost $VMHost -Name 'VM Network' -ErrorAction SilentlyContinue
+            if ($vm_network_exists) {
+                Write-Host "Removing default 'VM Network' virtual port group."
+                Remove-VirtualPortGroup -VirtualPortGroup $vm_network_exists -Confirm:$false -ErrorAction SilentlyContinue
+            }
 
             # Create virtual port groups
             foreach ($vpg in $virtual_port_groups) {
+                # Skip virtual port groups not associated with the current vmhost
                 if ($vpg.VMHost -ne $VMHost) {
                     continue
                 }
+                
+                $virtual_switch = Get-VirtualSwitch -VMHost $VMHost -Name $vpg.VirtualSwitch
                 $params = @{
                     'Name'=$vpg.Name
-                    'VirtualSwitch'=$vpg.VirtualSwitch
+                    'VirtualSwitch'=$virtual_switch
                     'VLanId'=$vpg.VLanId
                 }
-                New-VirtualPortGroup @params -WhatIf
+                $vpg_exists = Get-VirtualPortGroup -VMHost $VMHost -VirtualSwitch $virtual_switch -Name $vpg.Name -ErrorAction SilentlyContinue
+                if (-not $vpg_exists) {
+                        $ntp = New-VirtualPortGroup @params | Get-NicTeamingPolicy
+                        if ($vpg.ActiveNic) {
+                            $ntp | Set-NicTeamingPolicy -MakeNicActive $vpg.ActiveNic.Split(',').Trim()
+                        }
+                        if ($vpg.StandbyNic) {
+                            $ntp | Set-NicTeamingPolicy -MakeNicStandby $vpg.StandbyNic.Split(',').Trim()
+                        }
+                        if ($vpg.UnusedNic) {
+                            $ntp | Set-NicTeamingPolicy -MakeNicUnused $vpg.UnusedNic.Split(',').Trim()
+                        }
+                } else {
+                    "{0} already exists, skipping." -f $vpg.Name
+                }
+                
+                # Set NIC teaming policy for Management Network virtual port group
+                if ($vpg.Name -eq 'Management Network') {
+                    $ntp = Get-VirtualPortGroup -VMHost $VMHost -VirtualSwitch $virtual_switch -Name $vpg.Name | Get-NicTeamingPolicy
+                    if ($vpg.ActiveNic) {
+                            $ntp | Set-NicTeamingPolicy -MakeNicActive $vpg.ActiveNic.Split(',').Trim()
+                        }
+                        if ($vpg.StandbyNic) {
+                            $ntp | Set-NicTeamingPolicy -MakeNicStandby $vpg.StandbyNic.Split(',').Trim()
+                        }
+                        if ($vpg.UnusedNic) {
+                            $ntp | Set-NicTeamingPolicy -MakeNicUnused $vpg.UnusedNic.Split(',').Trim()
+                        }
+                }
             }
 
             # Create host network adapters in their original order to maintain device name
@@ -429,14 +609,19 @@ function global:Configure-VMHostNetworking {
         
                 # Convert empty properties to FALSE
                 foreach ($p in $n.PSObject.Properties) {
-                    if ($p.Value -eq '') {
-                        $p.Value = "FALSE"
+                    if ($p.Value -eq 'true') {
+                        $p.Value = $true
+                    }
+                    elseif ($p.Value -eq 'false' -or $p.Value -eq '') {
+                        $p.Value = $false
                     }
                 }
 
+                $virtual_switch = (Get-VirtualPortGroup -VMHost $VMHost -Name $n.PortGroup).VirtualSwitch
                 $params = @{
                     'VMHost'= $VMHost
                     'PortGroup'=$n.PortGroup
+                    'VirtualSwitch'=$virtual_switch
                     'IP'=$n.IP
                     'SubnetMask'=$n.SubnetMask
                     'Mtu'=$n.Mtu
@@ -445,7 +630,12 @@ function global:Configure-VMHostNetworking {
                     'ManagementTrafficEnabled'=$n.ManagementTrafficEnabled
                     'VsanTrafficEnabled'=$n.VsanTrafficEnabled
                 }
-                New-VMHostNetworkAdapter @params -WhatIf
+                $vmhost_network_adapter_exists = Get-VMHostNetworkAdapter -VMHost $VMHost -VirtualSwitch $virtual_switch -PortGroup $n.PortGroup -ErrorAction SilentlyContinue
+                if (-not $vmhost_network_adapter_exists) {
+                    New-VMHostNetworkAdapter @params
+                } else {
+                    "{0} already exists, skipping." -f $vmhost_network_adapter_exists.Name
+                }
             }
         }
     }
