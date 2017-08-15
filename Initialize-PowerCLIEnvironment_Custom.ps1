@@ -15,8 +15,9 @@
         Get/Start/Stop ESXi host SSH service
         Get ESXi host uptime
         List ESXi host datastores
+        Create ESXi host networking CSV import template
         Export ESXi host networking to CSV
-        Configure ESXi host networking from CSV
+        Import ESXi host networking from CSV
 #>
 
 
