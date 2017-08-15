@@ -1,14 +1,14 @@
 ﻿<#
         This module extends the functionality of PowerCLI
 
-        Initialize-PowerCLIEnvironment_Custom.ps1 1.1
+        Initialize-PowerCLIEnvironment_Custom.ps1 1.2
 
         Author: David Cruz (davidcruz72@gmail.com)
 
         PowerCLI version: 6.5
         PowerShell version: 5.1
 
-        Required Python packages:
+        Required modules:
         None.
 
         Features:
