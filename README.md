@@ -8,7 +8,7 @@ Retrieves the status of the SSH service of VMHosts provided, or VMHosts in the c
 **Start-VMHostSSHService**  
 Starts the SSH service of VMHosts provided, or VMHosts in the cluster provided
 
-**Stop-VMHostSSHServic**  
+**Stop-VMHostSSHService**  
 Stops the SSH service of VMHosts provided, or VMHosts in the cluster provided
 
 **Get-VMHostUptime (included, but not developed by me)**  
