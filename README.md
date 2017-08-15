@@ -20,7 +20,7 @@ Retrieves the datastore usage of VMHosts provided
 **New-VMHostNetworkingCsvTemplate**  
 Creates a host networking CSV import template to be used with Import-VMHostNetworkingFromCsv
 
-**Export-VMHostNetworking**  
+**Export-VMHostNetworkingToCsv**  
 Exports host networking for VMHosts provided
 
 **Import-VMHostNetworkingFromCsv**  
