@@ -516,6 +516,8 @@ function global:Import-VMHostNetworkingFromCsv {
                     continue
                 }
                 
+                $virtual_switch = Get-VirtualSwitch -VMHost $VMHost -Name $s.Name -ErrorAction SilentlyContinue
+
                 # Create virtual switches. Skip vSwitch0 since it exists by default
                 $s.Nic = $s.Nic.Split(',').Trim()
                 if ($s.Name -eq 'vSwitch0') {
@@ -527,7 +529,7 @@ function global:Import-VMHostNetworkingFromCsv {
                         if ($nic -match 'vmnic0') {
                             continue
                         }
-                        Add-VirtualSwitchPhysicalNetworkAdapter -VMHostPhysicalNic (Get-VMHostNetworkAdapter -VMHost $VMHost -Physical -Name $nic) -VirtualSwitch $s.Name -Confirm:$false
+                        Add-VirtualSwitchPhysicalNetworkAdapter -VMHostPhysicalNic (Get-VMHostNetworkAdapter -VMHost $VMHost -Physical -Name $nic) -VirtualSwitch $virtual_switch -Confirm:$false
                     }
                     
                     continue
@@ -539,8 +541,7 @@ function global:Import-VMHostNetworkingFromCsv {
                     'Nic'=$s.Nic
                     'Mtu'=$s.Mtu
                 }
-                $virtual_switch_exists = Get-VirtualSwitch -VMHost $VMHost -Name $s.Name -ErrorAction SilentlyContinue
-                if (-not $virtual_switch_exists) {
+                if (-not $virtual_switch) {
                     New-VirtualSwitch @params
                 } else {
                     '{0} already exists, skipping.' -f $s.Name
