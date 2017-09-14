@@ -51,7 +51,7 @@ $CustomInitScript = Join-Path $currentDir $CustomInitScriptName
         Get-VMHost -location folder1 | Get-VMHostSSHServiceStatus
         Shows the SSH service status of VMHosts in folder1
         .Link
-        https://github.com/Dapacr
+        https://github.com/Dapacruz
 #>
 function global:Get-VMHostSSHServiceStatus {
     [CmdletBinding()] 
@@ -99,7 +99,7 @@ function global:Get-VMHostSSHServiceStatus {
         Get-VMHost -location folder1 | Start-VMHostSSHService
         Starts the SSH service on VMHosts in folder1
         .Link
-        https://github.com/Dapacr
+        https://github.com/Dapacruz
 #>
 function global:Start-VMHostSSHService {
     [CmdletBinding(SupportsShouldProcess=$True)] 
@@ -153,7 +153,7 @@ function global:Start-VMHostSSHService {
         Get-VMHost -location folder1 | Stop-VMHostSSHService
         Stops the SSH service on VMHosts in folder1
         .Link
-        https://github.com/Dapacr
+        https://github.com/Dapacruz
 #>
 function global:Stop-VMHostSSHService {
     [CmdletBinding(SupportsShouldProcess=$True)] 
@@ -250,7 +250,7 @@ function global:Get-VMHostUptime {
         Get-VMHostDatastores (get-cluster 'cluster1' | get-vmhost)
         Shows the usage statistics of all datastores of all hosts in vCenter cluster 'cluster1'
         .Link
-        https://github.com/Dapacr
+        https://github.com/Dapacruz
 #>
 function global:Get-VMHostDatastores {
     [CmdletBinding()] 
@@ -375,7 +375,7 @@ function global:New-VMHostNetworkingCsvTemplate {
         Export-VMHostNetworkingToCsv vmhost*
         Exports networking for vmhosts with names that begin with "vmhost"
         .Link
-        https://github.com/Dapacr
+        https://github.com/Dapacruz
 #>
 function global:Export-VMHostNetworkingToCsv {
     # TODO Export software iSCSI adapter configuration
@@ -475,7 +475,7 @@ function global:Export-VMHostNetworkingToCsv {
         Import-VMHostNetworkingFromCsv vmhost*
         Imports networking for all vmhosts with names that begin with "vmhost"
         .Link
-        https://github.com/Dapacr
+        https://github.com/Dapacruz
 #>
 function global:Import-VMHostNetworkingFromCsv {
     # TODO Configure software iSCSI adapter
