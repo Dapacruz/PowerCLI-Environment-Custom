@@ -657,14 +657,13 @@ function global:Import-VMHostNetworkingFromCsv {
         .Parameter Mtu
         The ping buffer size (Use 1472 for standard frames and 8972 for jumbo frames)
         .Example
-        $mgmt_vmks = 'vmk0'
-        $mgmt_addrs = '10.1.15.130
-        10.1.15.120
-        10.1.15.40
-        10.1.15.20
-        10.1.15.30'.split("`n")
+        PS C:\>$vmhosts = "esxi*"
+        PS C:\>$mgmt_vmks = 'vmk0'
+        PS C:\>$mgmt_addrs = Get-VMHostNetworkAdapter -VMHost $vmhosts -Name $mgmt_vmks | select -ExpandProperty IP
 
-        Test-VMHostNetworking -VMHosts esxi* -VMkernelPort $mgmt_vmks -IpAddress $mgmt_addrs
+        PS C:\>Test-VMHostNetworking -VMHosts $vmhosts -VMkernelPort $mgmt_vmks -IpAddress $mgmt_addrs
+
+        Ping sweep complete. No failures detected.
         .Link
         https://github.com/Dapacruz
 #>
@@ -699,6 +698,7 @@ function global:Test-VMHostNetworking {
                     $params.wait = '.1'
                     $params.count = 1
 
+                    Write-Verbose "Pinging $addr from $vmk on $VMHost ..."
                     $results = $ping.Invoke($params)
                     if ($results.Summary.PacketLost -ne 0) {
                         Write-Warning "Ping failed on $vmhost ($vmk): $addr"
