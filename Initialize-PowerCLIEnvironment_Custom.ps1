@@ -657,7 +657,14 @@ function global:Import-VMHostNetworkingFromCsv {
         .Parameter Mtu
         The ping buffer size (Use 1472 for standard frames and 8972 for jumbo frames)
         .Example
-        Test-VMHostNetworking -VMHosts vmhost* -VMkernel vmk0 -IpAddress 192.168.1.1, 192.168.1.100
+        $mgmt_vmks = 'vmk0'
+        $mgmt_addrs = '10.1.15.130
+        10.1.15.120
+        10.1.15.40
+        10.1.15.20
+        10.1.15.30'.split("`n")
+
+        Test-VMHostNetworking -VMHosts esxi* -VMkernelPort $mgmt_vmks -IpAddress $mgmt_addrs
         .Link
         https://github.com/Dapacruz
 #>
@@ -667,7 +674,7 @@ function global:Test-VMHostNetworking {
         [Parameter(ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, Mandatory=$true, Position=0)][Alias('Name')]
         [string[]]$VMHosts,
         [Parameter(Mandatory=$true)]
-        [string[]]$VMkernel,
+        [string[]]$VMkernelPort,
         [Parameter(Mandatory=$true)]
         [string[]]$IpAddress,
         [int]$Mtu = 1472
@@ -682,7 +689,7 @@ function global:Test-VMHostNetworking {
             $esxcli = Get-EsxCli -VMHost $vmhost -V2
             $ping = $esxcli.network.diag.ping
             
-            foreach ($vmk in $VMkernel) {
+            foreach ($vmk in $VMkernelPort) {
                 foreach ($addr in $IpAddress) {
                     $params = $ping.CreateArgs()
                     $params.host = $addr
