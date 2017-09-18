@@ -26,6 +26,9 @@ Exports host networking for VMHosts provided
 **Import-VMHostNetworkingFromCsv**  
 Imports host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
 
+**Test-VMHostNetworking**  
+Pings addresses from each provided VMkernel port for VMHosts provided
+
 Installation
 --------------
 To load custom VMware PowerCLI settings automatically, you can create a script configuration file named Initialize-PowerCLIEnvironment_Custom.ps1 in the Scripts folder. The application recognizes and loads the custom file after loading the default script configuration file.
