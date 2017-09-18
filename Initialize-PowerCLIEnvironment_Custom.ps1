@@ -642,3 +642,70 @@ function global:Import-VMHostNetworkingFromCsv {
         }
     }
 }
+
+<#
+        .Synopsis
+        Test host networking
+        .Description
+        Pings addresses from each provided VMkernel port for VMHosts provided
+        .Parameter VMHosts
+        The VMHosts you want to ping from. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
+        .Parameter VMkernel
+        The VMkernel ports to ping from
+        .Parameter IpAddress
+        The IP addresses to ping
+        .Parameter Mtu
+        The ping buffer size (Use 1472 for standard frames and 8972 for jumbo frames)
+        .Example
+        Test-VMHostNetworking -VMHosts vmhost* -VMkernel vmk0 -IpAddress 192.168.1.1, 192.168.1.100
+        .Link
+        https://github.com/Dapacruz
+#>
+function global:Test-VMHostNetworking {
+    [CmdletBinding()]
+    Param (
+        [Parameter(ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, Mandatory=$true, Position=0)][Alias('Name')]
+        [string[]]$VMHosts,
+        [Parameter(Mandatory=$true)]
+        [string[]]$VMkernel,
+        [Parameter(Mandatory=$true)]
+        [string[]]$IpAddress,
+        [int]$Mtu = 1472
+    )
+    Begin {
+        # Expand to full hostname in case wildcards are used
+        $VMHosts = Get-VMHost -Name $VMHosts
+        $failures = 0
+    }
+    Process {
+        foreach ($VMHost in $VMHosts) {
+            $esxcli = Get-EsxCli -VMHost $vmhost -V2
+            $ping = $esxcli.network.diag.ping
+            
+            foreach ($vmk in $VMkernel) {
+                foreach ($addr in $IpAddress) {
+                    $params = $ping.CreateArgs()
+                    $params.host = $addr
+                    $params.interface = $vmk
+                    $params.size = $mtu
+                    $params.df = $true
+                    $params.wait = '.1'
+                    $params.count = 1
+
+                    $results = $ping.Invoke($params)
+                    if ($results.Summary.PacketLost -ne 0) {
+                        Write-Warning "Ping failed on $vmhost ($vmk): $addr"
+                        $failures += 1
+                    }
+                }
+            }
+        }
+    }
+    End {
+        if ($failures -eq 0) {
+            Write-Host 'Ping sweep complete. No failures detected.'
+        } else {
+            Write-Host "Ping sweep complete. Failures detected: $failures."
+        }
+    }
+}
