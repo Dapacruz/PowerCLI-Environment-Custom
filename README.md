@@ -1,5 +1,7 @@
-PowerCLI-Environment-Custom
----------------------------
+## This module has been *deprecated* in favor of a standard PowerShell module (https://github.com/Dapacruz/VMware.VimAutomation.Custom). With the release of PowerCLI 6.5.1, the PowerCLI team coverted to standard PowerShell modules.
+
+### PowerCLI-Environment-Custom
+
 *Extends the functionality of the VMware PowerCLI module*  
 
 **Get-VMHostSSHServiceStatus**  
